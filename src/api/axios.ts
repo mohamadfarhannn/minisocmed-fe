@@ -8,4 +8,39 @@ const api = axios.create({
   },
 });
 
+// Request Interceptor
+api.interceptors.request.use(
+  (config) => {
+    // Ambil token dari localstorage
+    const token = localStorage.getItem('token')
+
+    // Kalau ada token, masukin ke header Authorization
+    if(token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+);
+
+// Response Interceptor
+api.interceptors.response.use(
+  // Jika response berhasil, teruskan
+  (response) => {
+    return response;
+  },
+  // Jika response gagal, cek statusnya
+  (error) => {
+    // Jika status 401 (Unauthorized), hapus token dan redirect ke login
+    if(error.response && error.response.status === 401) {
+      localStorage.removeItem('token')
+      window.location.href = '/login'
+    }
+    return Promise.reject(error)
+  }
+);
+
 export default api;

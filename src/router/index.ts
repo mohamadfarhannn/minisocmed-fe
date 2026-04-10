@@ -1,8 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import LoginView from '@/views/LoginView.vue'
-
-// Bikin komponen Home sementara (nanti kita pisah ke file sendiri)
-const HomeDummy = { template: '<div class="p-10 text-2xl font-bold">Ini Halaman Home (Belum dibikin)</div>' }
+import LoginView from '@/views/Auth/LoginView.vue'
+import HomeView from '@/views/Home/HomeView.vue'
+import MobileLayout from '@/components/layout/MobileLayout.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,9 +13,15 @@ const router = createRouter({
     },
     {
       path: '/',
-      name: 'home',
-      component: HomeDummy
-    }
+      component: MobileLayout,
+      children: [
+        {
+          path: '',
+          name: 'home',
+          component: HomeView
+        },
+      ]
+    },
   ],
 })
 
