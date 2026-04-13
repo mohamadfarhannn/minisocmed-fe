@@ -35,9 +35,15 @@ api.interceptors.response.use(
   // Jika response gagal, cek statusnya
   (error) => {
     // Jika status 401 (Unauthorized), hapus token dan redirect ke login
+    // Kecuali jika user sedang di halaman login/register
     if(error.response && error.response.status === 401) {
       localStorage.removeItem('token')
-      window.location.href = '/login'
+      
+      const isAuthPage = window.location.pathname === '/login' || window.location.pathname === '/register'
+      
+      if (!isAuthPage) {
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   }

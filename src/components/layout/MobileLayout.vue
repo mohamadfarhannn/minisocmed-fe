@@ -3,9 +3,10 @@ import { ref, onMounted } from 'vue'
 import { RouterView, useRouter } from 'vue-router'
 // Nanti icon ini otomatis ada kalau kita udah install lucide-vue-next
 import { Home, MessageSquare, Plus, Heart, User, Settings, LogOut, ChevronRight, X } from 'lucide-vue-next'
-import api from '@/api/axios'
+import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const isVisible = ref(true)
 const lastScrollPosition = ref(0)
 
@@ -42,32 +43,21 @@ const onScroll = (e: Event) => {
   lastScrollPosition.value = currentScrollPosition
 }
 
-interface UserData {
-  name: string
-  email: string
-  avatar?: string
-}
-
-const isSidebarOpen = ref(false)
-const userData = ref<UserData | null>(null)
-
-const fetchUser = async () => {
-  try {
-    const response = await api.get('/me')
-    userData.value = response.data
-  } catch (error) {
-    console.error('Failed to fetch user:', error)
-  }
-}
-
-const logout = () => {
-  localStorage.removeItem('token')
+const handleLogout = () => {
+  authStore.logout()
   router.push('/login')
 }
 
 onMounted(() => {
-  fetchUser()
+  if (!authStore.user) {
+    authStore.fetchUser()
+  }
 })
+
+const isSidebarOpen = ref(false)
+// const toggleSidebar = () => {
+//   isSidebarOpen.value = !isSidebarOpen.value
+// }
 </script>
 
 <template>
@@ -90,7 +80,7 @@ onMounted(() => {
           class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden border-2 border-white shadow-sm hover:ring-2 hover:ring-blue-100 transition-all"
         >
           <img
-            :src="userData?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData?.name || 'Steve'}`"
+            :src="`https://api.dicebear.com/7.x/avataaars/svg?seed=${authStore.user?.name || 'Steve'}`"
             alt="Profile"
           />
         </button>
@@ -169,13 +159,13 @@ onMounted(() => {
           <div class="bg-gray-50 rounded-2xl p-4 flex items-center gap-4 mb-8 border border-gray-100">
             <div class="w-14 h-14 rounded-full bg-blue-100 shrink-0 overflow-hidden border-2 border-white shadow-sm">
               <img
-                :src="userData?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData?.name || 'Steve'}`"
+                :src="`https://api.dicebear.com/7.x/avataaars/svg?seed=${authStore.user?.name || 'Steve'}`"
                 alt="Avatar"
               />
             </div>
             <div class="overflow-hidden">
-              <p class="font-bold text-gray-800 truncate">{{ userData?.name || 'Loading...' }}</p>
-              <p class="text-xs text-gray-500 truncate">{{ userData?.email || 'email@example.com' }}</p>
+              <p class="font-bold text-gray-800 truncate">{{ authStore.user?.name || 'Loading...' }}</p>
+              <p class="text-xs text-gray-500 truncate">{{ authStore.user?.email || 'email@example.com' }}</p>
               <div class="mt-1 inline-flex items-center gap-1.5 py-0.5 px-2 bg-green-100 text-[10px] font-bold text-green-700 rounded-full uppercase tracking-wider">
                 <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
                 Online
@@ -212,7 +202,7 @@ onMounted(() => {
               </li>
               <li class="pt-4 mt-4 border-t border-gray-100">
                 <button
-                  @click="logout"
+                  @click="handleLogout"
                   class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-500 transition-all group"
                 >
                   <LogOut class="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
